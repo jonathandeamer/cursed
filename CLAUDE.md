@@ -137,8 +137,8 @@ The hooks are intentionally light:
 
 - `commit-msg` runs `cz check --commit-msg-file "$1"` to enforce
   conventional commit messages.
-- `post-commit` makes a best-effort backup push, but only when the
-  branch tracks `origin/*`. Set `CURSED_NO_AUTO_PUSH=1` to disable it.
+- `post-commit` is intentionally a no-op; push cursed branches
+  explicitly.
 - `pre-push` refuses pushes to `upstream` and non-fast-forward pushes to
   `zig`. It also runs `~/brat/experiments/verify_cursed_gaps.sh`
   non-blockingly when the brat checkout is reachable; set

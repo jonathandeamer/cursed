@@ -1,35 +1,5 @@
 #!/bin/sh
 
-# Best-effort backup push for this personal fork. Never block a commit.
-
-if [ "${CURSED_NO_AUTO_PUSH:-}" = "1" ]; then
-  exit 0
-fi
-
-branch=$(git branch --show-current 2>/dev/null)
-if [ -z "$branch" ]; then
-  exit 0
-fi
-
-upstream=$(git rev-parse --abbrev-ref --symbolic-full-name '@{u}' 2>/dev/null)
-if [ -z "$upstream" ]; then
-  echo "post-commit: no upstream for $branch; skipping backup push" >&2
-  exit 0
-fi
-
-case "$upstream" in
-  origin/*)
-    ;;
-  *)
-    echo "post-commit: upstream is $upstream, not origin/*; skipping backup push" >&2
-    exit 0
-    ;;
-esac
-
-if git push >/dev/null 2>&1; then
-  echo "post-commit: pushed $branch to $upstream" >&2
-else
-  echo "post-commit: backup push failed; commit kept local" >&2
-fi
-
+# Intentionally no auto-push in this fork. Push explicitly so zig and
+# topic-branch state stays visible and deliberate.
 exit 0
