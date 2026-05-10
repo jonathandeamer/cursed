@@ -27,4 +27,15 @@ do
   esac
 done
 
+# Downstream check: run brat's gap-verification probe set when the
+# brat checkout is reachable. Non-blocking. Set
+# CURSED_SKIP_DOWNSTREAM_CHECK=1 to disable.
+
+if [ "${CURSED_SKIP_DOWNSTREAM_CHECK:-}" != "1" ] && [ -x "$HOME/brat/experiments/verify_cursed_gaps.sh" ]; then
+    echo "pre-push: running ~/brat/experiments/verify_cursed_gaps.sh (non-blocking)" >&2
+    if ! bash "$HOME/brat/experiments/verify_cursed_gaps.sh" >&2; then
+        echo "pre-push: brat downstream check reported failures (push allowed; review the diff)" >&2
+    fi
+fi
+
 exit 0
