@@ -1,5 +1,8 @@
 /target
 
+__pycache__/
+*.pyc
+
 # Zig cache and build outputs
 .zig-cache/
 zig-out/
@@ -21,3 +24,5 @@ devenv.local.nix
 
 # pre-commit
 .pre-commit-config.yaml
+
+tropes.md

@@ -54,12 +54,38 @@ test target, but that may mostly prove the Zig build graph rather than
 the behavior of a CURSED language feature. For behavior changes, add or
 run focused compile/run probes.
 
+For language-behavior changes, run the probe harness:
+
+    make probes        # pytest probes/
+
+Each subdirectory under `probes/cases/` is one probe; add a directory
+to add a case (no test code changes needed). See `probes/README.md`.
+
 When a change touches semantics, test the relevant execution mode:
 
 - default/interpreter mode, if the bug is in that path;
 - native compile mode via `--compile`, then run the produced binary;
 - emitted IR via `--emit-ir`, when code generation is the suspected
   failure.
+
+## Compiler/Runtime Fix Protocol
+
+This section duplicates the `cursed-tdd` Claude skill so Codex (and
+Claude without the skill) follows the same checklist.
+
+1. Minimal failing `.💀` reproducer in `/tmp`. Confirm it fails for
+   the right reason.
+2. Bytes-and-exit verification: stdout via `xxd -p`, stderr captured
+   separately, exit code, and `--emit-ir` output when codegen is
+   suspected. Source reads alone are insufficient; the compiler can
+   inject calls grep won't show.
+3. Promote the reproducer into `probes/cases/` so the harness catches
+   regressions.
+4. Run `bash ~/brat/experiments/verify_cursed_gaps.sh`. New failures
+   are blockers unless intentional and called out in the commit body.
+5. If the fix closes or surfaces a gap, follow the cross-repo doc
+   sync section below to update brat's tracking docs in a separate
+   commit in `~/brat`.
 
 ## Working Style
 
@@ -81,6 +107,13 @@ When a change touches semantics, test the relevant execution mode:
 - The native compile path currently links `src-zig/cursed_runtime.c`;
   verify before changing other runtime-looking files.
 
+## Spec Locations
+
+`specs/` holds upstream CURSED language specifications - do not put
+session work there. Session brainstorms and implementation plans go
+under `docs/superpowers/specs/` and `docs/superpowers/plans/` with
+date-prefixed filenames (`YYYY-MM-DD-<topic>.md`).
+
 ## Fork And Contribution Hygiene
 
 This checkout is configured for personal-fork contributions:
@@ -93,15 +126,13 @@ Treat this as an unauthorised personal fork. Do not imply maintainer
 status, do not push directly to upstream, and do not rewrite upstream
 history.
 
-Before starting upstreamable work:
+Before starting upstreamable work, run the sync script:
 
-```bash
-git fetch upstream
-git switch zig
-git merge --ff-only upstream/zig
-git push origin zig
-git switch -c <topic-branch>
-```
+    scripts/upstream-sync.sh <topic-branch>
+
+It fetches upstream, fast-forwards `zig`, pushes `origin/zig`, and
+switches to the topic branch. It refuses to run with a dirty working
+tree. Both Claude and Codex use the same script so traces line up.
 
 Keep `zig` as the fork's working baseline branch. Create upstreamable
 feature or fix work on topic branches from `zig`, and avoid committing
@@ -156,32 +187,25 @@ The hooks are intentionally light:
 Do not bypass hooks unless the user explicitly asks or the hook is
 broken and you have explained the failure.
 
-## Cross-Repo Learnings
+## Cross-Repo Doc Sync
 
-Work in this repo can update brat's CURSED-facing docs. If direct work
-in `~/cursed` changes the relationship between brat and CURSED, update
-the relevant files in `/home/ec2-user/brat` in the same session:
+This section duplicates the `cross-repo-sync` Claude skill so Codex
+follows the same protocol.
 
-- `UPSTREAM.md` — CURSED issues, PRs, links, status, and which brat gap
-  they address.
-- `docs/cursed-subset.md` — verified current behavior of
-  `cursed-compiler --compile`.
-- `docs/cursed-gaps.md` — brat blockers, failure modes, blocked cases,
-  and upstream framing.
-- `README.md` — public-facing project status or reviewer entry points.
-- `docs/learnings.md` — durable surprises only, using the tag guidance
-  in that file.
+When a change in this repo closes or surfaces a CURSED gap, walk the
+four brat tracking files and decide whether each needs an update:
 
-If direct work in `~/cursed` reveals a CURSED limitation,
-compiler/runtime surprise, tooling gap, upstream issue, PR, or other
-durable lesson, update:
+- `~/brat/UPSTREAM.md` - issue/PR row updates or new rows
+- `~/brat/docs/cursed-subset.md` - verified current behavior
+- `~/brat/docs/cursed-gaps.md` - failure modes; mark closed gaps
+- `~/brat/docs/learnings.md` - durable surprises only. Re-read the
+  doc's own "When to update" section. Load `~/tropes/tropes.md`
+  before drafting; avoid "this changes everything" grandiosity, magic
+  adverbs, and `delve`/`tapestry`/`landscape`/`serves as`.
 
-`/home/ec2-user/brat/docs/learnings.md`
-
-Use the guidance in that file, tag direct CURSED work with
-`#cursed-dev`, read `/home/ec2-user/tropes/tropes.md` before drafting,
-and commit the brat-doc update in the `~/brat` repo separately from any
-CURSED commit.
+Commit the brat doc update in `~/brat` separately from the cursed
+commit. Reference the cursed commit SHA in the brat commit body so a
+later reader can bridge.
 
 ## Agent Attribution
 
@@ -196,6 +220,13 @@ Co-authored-by: Codex <codex@openai.com>
 
 Do not add agent attribution to commits the agent did not create or
 amend.
+
+Claude has skills, slash commands, and `~/.claude` hooks; Codex does
+not. When a Claude-only tool drove a non-trivial decision (a skill
+checklist, a slash command, a hook-gated workflow), name the tool in
+the commit body so Codex review can replay the reasoning. The point
+is not parity for its own sake - it is to keep cross-agent review
+honest when the two agents have different scaffolding.
 
 ## Machine-Level Changes
 

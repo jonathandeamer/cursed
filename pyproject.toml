@@ -1,2 +1,5 @@
 [tool.commitizen]
 name = "cz_conventional_commits"
+
+[tool.pytest.ini_options]
+testpaths = ["probes"]

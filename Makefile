@@ -77,10 +77,13 @@ clean: ## Clean all build artifacts
 
 # Testing Framework
 # =============================================================================
-.PHONY: test test-all test-zig test-stdlib test-compiler test-examples
+.PHONY: test test-all test-zig test-stdlib test-compiler test-examples probes
 .PHONY: run-tests check verify
 
 test: test-zig ## Run all tests
+
+probes: ## Run cursed-compiler native compile probes
+	pytest probes/
 
 test-zig: build ## Run Zig compiler tests
 	$(AT)echo -e "$(BLUE)🧪 Running Zig compiler tests...$(RESET)"
