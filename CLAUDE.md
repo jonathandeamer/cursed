@@ -108,7 +108,12 @@ branches from `main`; do not commit feature work directly to `main`, and
 do not force-push `main`. Force-push a personal topic branch only when no
 one else is using it.
 
-Use conventional commits, as requested by the README. Useful scopes:
+Prefer unscoped conventional commits, as requested by the README. Use a
+scope only when it materially helps. The commit hook allows only these
+scopes: `compiler`, `runtime`, `learnings`, `gaps`, `specs`, and
+`claude`. Do not invent narrow scopes such as `docs(plans)`.
+
+Useful scoped examples:
 
 ```text
 fix(compiler): ...
@@ -136,11 +141,11 @@ git config core.hooksPath .githooks
 The hooks are intentionally light:
 
 - `commit-msg` runs `cz check --commit-msg-file "$1"` to enforce
-  conventional commit messages.
+  conventional commit messages, then rejects unsupported scopes.
 - `post-commit` is intentionally a no-op; push cursed branches
   explicitly.
 - `pre-push` refuses pushes to `upstream` and non-fast-forward pushes to
-  `zig`. It also runs `~/brat/experiments/verify_cursed_gaps.sh`
+  `main`. It also runs `~/brat/experiments/verify_cursed_gaps.sh`
   non-blockingly when the brat checkout is reachable; set
   `CURSED_SKIP_DOWNSTREAM_CHECK=1` to skip that check.
 

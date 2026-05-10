@@ -1,2 +1,28 @@
 #!/bin/sh
-exec cz check --commit-msg-file "$1"
+set -eu
+
+msg_file="$1"
+
+cz check --commit-msg-file "$msg_file"
+
+subject=$(sed -n '1p' "$msg_file")
+scope=$(printf '%s\n' "$subject" |
+  sed -n \
+    -e 's/^[[:alpha:]][[:alnum:]-]*(\([^)]*\))!:.*/\1/p' \
+    -e 's/^[[:alpha:]][[:alnum:]-]*(\([^)]*\)):.*/\1/p' |
+  sed -n '1p')
+
+if [ -z "$scope" ]; then
+  exit 0
+fi
+
+case "$scope" in
+  compiler|runtime|learnings|gaps|specs|claude)
+    exit 0
+    ;;
+  *)
+    echo "commit-msg: unsupported conventional commit scope '$scope'" >&2
+    echo "commit-msg: prefer an unscoped message, or use one of: compiler, runtime, learnings, gaps, specs, claude" >&2
+    exit 1
+    ;;
+esac
