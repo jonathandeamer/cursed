@@ -1,0 +1,30 @@
+#!/bin/sh
+
+remote_name="$1"
+remote_url="$2"
+
+if [ "$remote_name" = "upstream" ]; then
+  echo "pre-push: refusing to push to upstream ($remote_url)" >&2
+  exit 1
+fi
+
+if [ "$remote_url" = "DISABLED" ]; then
+  echo "pre-push: refusing to push to disabled remote URL" >&2
+  exit 1
+fi
+
+while read local_ref local_oid remote_ref remote_oid
+do
+  case "$remote_ref" in
+    refs/heads/zig)
+      if [ "$remote_oid" != "0000000000000000000000000000000000000000" ]; then
+        if ! git merge-base --is-ancestor "$remote_oid" "$local_oid"; then
+          echo "pre-push: refusing non-fast-forward push to zig" >&2
+          exit 1
+        fi
+      fi
+      ;;
+  esac
+done
+
+exit 0

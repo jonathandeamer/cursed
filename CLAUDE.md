@@ -126,6 +126,26 @@ reproducer, exact command, expected output, actual output, platform, and
 why the behavior matters. It is fine to mention brat as downstream
 motivation, but the CURSED fix should be general rather than brat-only.
 
+## Git Hooks
+
+This repo tracks hooks in `.githooks/`. Enable them in each local clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+The hooks are intentionally light:
+
+- `commit-msg` runs `cz check --commit-msg-file "$1"` to enforce
+  conventional commit messages.
+- `post-commit` makes a best-effort backup push, but only when the
+  branch tracks `origin/*`. Set `CURSED_NO_AUTO_PUSH=1` to disable it.
+- `pre-push` refuses pushes to `upstream` and non-fast-forward pushes to
+  `zig`.
+
+Do not bypass hooks unless the user explicitly asks or the hook is
+broken and you have explained the failure.
+
 ## Cross-Repo Learnings
 
 Work in this repo can update the brat learnings journal. If direct work

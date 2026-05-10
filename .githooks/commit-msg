@@ -1,0 +1,2 @@
+#!/bin/sh
+exec cz check --commit-msg-file "$1"
