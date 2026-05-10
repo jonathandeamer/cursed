@@ -221,12 +221,21 @@ Co-authored-by: Codex <codex@openai.com>
 Do not add agent attribution to commits the agent did not create or
 amend.
 
-Claude has skills, slash commands, and `~/.claude` hooks; Codex does
-not. When a Claude-only tool drove a non-trivial decision (a skill
-checklist, a slash command, a hook-gated workflow), name the tool in
-the commit body so Codex review can replay the reasoning. The point
-is not parity for its own sake - it is to keep cross-agent review
+Claude has `~/.claude` skills, slash commands, and `~/.claude` hooks;
+Codex has separate `~/.codex/skills` support, but not Claude's slash
+commands or hooks. When a Claude-only tool drove a non-trivial decision
+(a skill checklist, a slash command, a hook-gated workflow), name the
+tool in the commit body so Codex review can replay the reasoning. The
+point is not parity for its own sake - it is to keep cross-agent review
 honest when the two agents have different scaffolding.
+
+Project-specific skills are paired across agents when possible:
+`cursed-tdd` and `cross-repo-sync` should exist in both
+`~/.claude/skills/` and `~/.codex/skills/`. If one copy changes, update
+the other and verify with `diff -u`. Claude-only permission allowlists
+and `SessionStart` hooks do not have a direct Codex equivalent here;
+Codex uses `~/.codex/config.toml`, project trust entries, and runtime
+sandbox approvals instead.
 
 ## Machine-Level Changes
 
