@@ -70,22 +70,15 @@ When a change touches semantics, test the relevant execution mode:
 
 ## Compiler/Runtime Fix Protocol
 
-This section duplicates the `cursed-tdd` Claude skill so Codex (and
-Claude without the skill) follows the same checklist.
+Use the paired `cursed-tdd` skill for compiler/runtime behavior work.
+If skills are unavailable, follow this fallback:
 
-1. Minimal failing `.💀` reproducer in `/tmp`. Confirm it fails for
-   the right reason.
-2. Bytes-and-exit verification: stdout via `xxd -p`, stderr captured
-   separately, exit code, and `--emit-ir` output when codegen is
-   suspected. Source reads alone are insufficient; the compiler can
-   inject calls grep won't show.
-3. Promote the reproducer into `probes/cases/` so the harness catches
-   regressions.
-4. Run `bash ~/brat/experiments/verify_cursed_gaps.sh`. New failures
-   are blockers unless intentional and called out in the commit body.
-5. If the fix closes or surfaces a gap, follow the cross-repo doc
-   sync section below to update brat's tracking docs in a separate
-   commit in `~/brat`.
+1. Reproduce the behavior with the smallest `.💀` program in `/tmp`.
+2. Capture stdout bytes, stderr, exit code, and emitted IR when codegen
+   is suspected; source reads alone are not enough.
+3. Add or update a case under `probes/cases/`, then run `make probes`.
+4. Run `bash ~/brat/experiments/verify_cursed_gaps.sh`; if a gap moved,
+   follow `## Cross-Repo Doc Sync`.
 
 ## Working Style
 
@@ -130,9 +123,8 @@ Before starting upstreamable work, run the sync script:
 
     scripts/upstream-sync.sh <topic-branch>
 
-It fetches upstream, fast-forwards `zig`, pushes `origin/zig`, and
-switches to the topic branch. It refuses to run with a dirty working
-tree. Both Claude and Codex use the same script so traces line up.
+It handles the fetch, fast-forward, `origin/zig` push, dirty-tree
+refusal, and topic branch switch.
 
 Keep `zig` as the fork's working baseline branch. Create upstreamable
 feature or fix work on topic branches from `zig`, and avoid committing
@@ -182,18 +174,18 @@ The hooks are intentionally light:
 - `post-commit` makes a best-effort backup push, but only when the
   branch tracks `origin/*`. Set `CURSED_NO_AUTO_PUSH=1` to disable it.
 - `pre-push` refuses pushes to `upstream` and non-fast-forward pushes to
-  `zig`.
+  `zig`. It also runs `~/brat/experiments/verify_cursed_gaps.sh`
+  non-blockingly when the brat checkout is reachable; set
+  `CURSED_SKIP_DOWNSTREAM_CHECK=1` to skip that check.
 
 Do not bypass hooks unless the user explicitly asks or the hook is
 broken and you have explained the failure.
 
 ## Cross-Repo Doc Sync
 
-This section duplicates the `cross-repo-sync` Claude skill so Codex
-follows the same protocol.
-
-When a change in this repo closes or surfaces a CURSED gap, walk the
-four brat tracking files and decide whether each needs an update:
+Use the paired `cross-repo-sync` skill when a change here closes or
+surfaces a CURSED gap. If skills are unavailable, walk these brat
+tracking files and decide whether each needs an update:
 
 - `~/brat/UPSTREAM.md` - issue/PR row updates or new rows
 - `~/brat/docs/cursed-subset.md` - verified current behavior
@@ -203,9 +195,8 @@ four brat tracking files and decide whether each needs an update:
   before drafting; avoid "this changes everything" grandiosity, magic
   adverbs, and `delve`/`tapestry`/`landscape`/`serves as`.
 
-Commit the brat doc update in `~/brat` separately from the cursed
-commit. Reference the cursed commit SHA in the brat commit body so a
-later reader can bridge.
+Commit any brat doc update separately in `~/brat`, and reference the
+cursed commit SHA in the brat commit body.
 
 ## Agent Attribution
 
@@ -221,21 +212,17 @@ Co-authored-by: Codex <codex@openai.com>
 Do not add agent attribution to commits the agent did not create or
 amend.
 
-Claude has `~/.claude` skills, slash commands, and `~/.claude` hooks;
-Codex has separate `~/.codex/skills` support, but not Claude's slash
-commands or hooks. When a Claude-only tool drove a non-trivial decision
-(a skill checklist, a slash command, a hook-gated workflow), name the
-tool in the commit body so Codex review can replay the reasoning. The
-point is not parity for its own sake - it is to keep cross-agent review
-honest when the two agents have different scaffolding.
+Keep project skills paired across agents: `cursed-tdd` and
+`cross-repo-sync` should match under `~/.claude/skills/` and
+`~/.codex/skills/`; after editing one copy, update the other and verify
+with `diff -u`.
 
-Project-specific skills are paired across agents when possible:
-`cursed-tdd` and `cross-repo-sync` should exist in both
-`~/.claude/skills/` and `~/.codex/skills/`. If one copy changes, update
-the other and verify with `diff -u`. Claude-only permission allowlists
-and `SessionStart` hooks do not have a direct Codex equivalent here;
-Codex uses `~/.codex/config.toml`, project trust entries, and runtime
-sandbox approvals instead.
+Claude-only slash commands, permission allowlists, and `SessionStart`
+hooks do not have direct Codex equivalents here. Codex uses
+`~/.codex/config.toml`, project trust entries, runtime sandbox
+approvals, and its own `~/.codex/skills/` support. When a Claude-only
+tool drove a non-trivial decision, name it in the commit body so Codex
+review can replay the reasoning.
 
 ## Machine-Level Changes
 
