@@ -148,15 +148,29 @@ broken and you have explained the failure.
 
 ## Cross-Repo Learnings
 
-Work in this repo can update the brat learnings journal. If direct work
-in `~/cursed` reveals a CURSED limitation, compiler/runtime surprise,
-tooling gap, upstream issue, PR, or other durable lesson, update:
+Work in this repo can update brat's CURSED-facing docs. If direct work
+in `~/cursed` changes the relationship between brat and CURSED, update
+the relevant files in `/home/ec2-user/brat` in the same session:
+
+- `UPSTREAM.md` — CURSED issues, PRs, links, status, and which brat gap
+  they address.
+- `docs/cursed-subset.md` — verified current behavior of
+  `cursed-compiler --compile`.
+- `docs/cursed-gaps.md` — brat blockers, failure modes, blocked cases,
+  and upstream framing.
+- `README.md` — public-facing project status or reviewer entry points.
+- `docs/learnings.md` — durable surprises only, using the tag guidance
+  in that file.
+
+If direct work in `~/cursed` reveals a CURSED limitation,
+compiler/runtime surprise, tooling gap, upstream issue, PR, or other
+durable lesson, update:
 
 `/home/ec2-user/brat/docs/learnings.md`
 
 Use the guidance in that file, tag direct CURSED work with
 `#cursed-dev`, read `/home/ec2-user/tropes/tropes.md` before drafting,
-and commit the learnings update in the `~/brat` repo separately from any
+and commit the brat-doc update in the `~/brat` repo separately from any
 CURSED commit.
 
 ## Agent Attribution
