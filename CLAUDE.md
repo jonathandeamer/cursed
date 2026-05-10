@@ -15,6 +15,9 @@ This repo contains many specs, examples, generated docs, old result
 logs, and parallel implementation experiments. Treat them as context,
 not proof that a feature works.
 
+Before editing implementation files, verify the path is wired in
+`build.zig`; native compile currently links `src-zig/cursed_runtime.c`.
+
 ## Verify What Works
 
 - Do not infer implementation status from `README.md`, `specs/`,
@@ -38,7 +41,7 @@ compile surface:
 Read those before changing brat-driven compiler/runtime behavior, then
 confirm again against this repo.
 
-## Build And Test
+## Build, Test, And Fix
 
 Prefer the active Zig compiler path:
 
@@ -51,54 +54,28 @@ zig build
 
 `make build` wraps `zig build`. `make test` currently runs the Zig build
 test target, but that may mostly prove the Zig build graph rather than
-the behavior of a CURSED language feature. For behavior changes, add or
-run focused compile/run probes.
+the behavior of a CURSED language feature.
 
-For language-behavior changes, run the probe harness:
-
-    make probes        # pytest probes/
-
-Each subdirectory under `probes/cases/` is one probe; add a directory
-to add a case (no test code changes needed). See `probes/README.md`.
-
-When a change touches semantics, test the relevant execution mode:
-
-- default/interpreter mode, if the bug is in that path;
-- native compile mode via `--compile`, then run the produced binary;
-- emitted IR via `--emit-ir`, when code generation is the suspected
-  failure.
-
-## Compiler/Runtime Fix Protocol
-
-Use the paired `cursed-tdd` skill for compiler/runtime behavior work.
-If skills are unavailable, follow this fallback:
+For compiler/runtime behavior work, use the paired `cursed-tdd` skill.
+If skills are unavailable, use this fallback:
 
 1. Reproduce the behavior with the smallest `.💀` program in `/tmp`.
-2. Capture stdout bytes, stderr, exit code, and emitted IR when codegen
-   is suspected; source reads alone are not enough.
-3. Add or update a case under `probes/cases/`, then run `make probes`.
+2. Test the relevant execution mode: interpreter, native `--compile`,
+   or `--emit-ir` when codegen is suspected. Capture stdout bytes,
+   stderr, and exit code; source reads alone are not enough.
+3. Add or update a case under `probes/cases/`, then run `make probes`
+   (`pytest probes/`). See `probes/README.md`.
 4. Run `bash ~/brat/experiments/verify_cursed_gaps.sh`; if a gap moved,
    follow `## Cross-Repo Doc Sync`.
 
 ## Working Style
 
-- Use red-green development for fixes: create or identify a minimal
-  failing `.💀` reproducer, confirm it fails for the right reason, then
-  implement the fix.
 - Keep changes primitive-sized: one compiler/runtime behavior per branch
   or PR when possible.
-- Identify the active implementation path before editing. `src-zig/`
-  contains many `advanced_*`, `*_fixed`, `*_complete`, and
-  `llvm_ir_pipeline_*` files that may not be wired into `build.zig`.
-- Avoid broad rewrites across parallel old implementations unless the
-  task explicitly requires it.
 - Use `/tmp` for exploratory probes. Do not add root-level debug files
   or generated result logs unless they are intentional test fixtures.
-- Avoid touching `zig-out/`, `build/`, `output/`, `docs_generated/`,
-  old result logs, and broad generated reports unless the task is
-  specifically about those artifacts.
-- The native compile path currently links `src-zig/cursed_runtime.c`;
-  verify before changing other runtime-looking files.
+- Avoid broad rewrites across parallel old implementations and generated
+  artifacts unless the task explicitly requires it.
 
 ## Spec Locations
 
@@ -119,27 +96,17 @@ Treat this as an unauthorised personal fork. Do not imply maintainer
 status, do not push directly to upstream, and do not rewrite upstream
 history.
 
-Before starting upstreamable work, run the sync script:
+Before starting upstreamable work, run:
 
     scripts/upstream-sync.sh <topic-branch>
 
 It handles the fetch, fast-forward, `origin/zig` push, dirty-tree
 refusal, and topic branch switch.
 
-Keep `zig` as the fork's working baseline branch. Create upstreamable
-feature or fix work on topic branches from `zig`, and avoid committing
-feature work directly to `zig`.
-
-Fork-only workflow notes may live on `zig`, but remember that topic
-branches created from `zig` inherit those commits. Before opening an
-upstream PR, confirm the branch contains only the intended upstreamable
-changes, or branch from `upstream/zig` and cherry-pick the feature
-commits.
-
-Prefer topic branches named for the primitive or bug, for example
-`fix-compile-ready`, `runtime-stderr-write`, `compiler-argv-access`, or
-`stdlib-dropz-read-file`. Do not force-push `zig`. Force-push a personal
-topic branch only when no one else is using it.
+Keep `zig` as the fork's working baseline. Do upstreamable work on topic
+branches from `zig`; do not commit feature work directly to `zig`, and
+do not force-push `zig`. Force-push a personal topic branch only when no
+one else is using it.
 
 Use conventional commits, as requested by the README. Useful scopes:
 
@@ -151,8 +118,7 @@ docs(specs): ...
 ```
 
 Prefer commits split by intent: failing test/probe, implementation, docs
-update. Tiny changes can combine test and fix, but avoid mixing unrelated
-primitives.
+update. Tiny changes can combine test and fix.
 
 For issues and PRs, include issue-shaped evidence: minimal `.💀`
 reproducer, exact command, expected output, actual output, platform, and
