@@ -1,11 +1,11 @@
 #!/bin/sh
-# upstream-sync.sh - fast-forward zig from upstream, push origin, branch off
+# upstream-sync.sh - fast-forward main from upstream/zig, push origin, branch off
 #
 # Usage: scripts/upstream-sync.sh <topic-branch>
 #
 # Refuses to run with a dirty working tree.
-# Refuses non-fast-forward zig updates (lets git fail loudly).
-# Pushes the freshly-merged zig to origin.
+# Refuses non-fast-forward main updates (lets git fail loudly).
+# Pushes the freshly-merged main to origin.
 # Switches to the requested topic branch (creates it if needed).
 
 set -eu
@@ -24,12 +24,12 @@ fi
 echo "upstream-sync: fetching upstream..." >&2
 git fetch upstream
 
-echo "upstream-sync: switching to zig and fast-forwarding..." >&2
-git switch zig
+echo "upstream-sync: switching to main and fast-forwarding from upstream/zig..." >&2
+git switch main
 git merge --ff-only upstream/zig
 
-echo "upstream-sync: pushing origin/zig..." >&2
-git push origin zig
+echo "upstream-sync: pushing origin/main..." >&2
+git push origin main
 
 if git show-ref --verify --quiet "refs/heads/$topic"; then
     echo "upstream-sync: switching to existing topic branch $topic" >&2

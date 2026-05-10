@@ -100,12 +100,12 @@ Before starting upstreamable work, run:
 
     scripts/upstream-sync.sh <topic-branch>
 
-It handles the fetch, fast-forward, `origin/zig` push, dirty-tree
-refusal, and topic branch switch.
+It handles the fetch, fast-forward from `upstream/zig`, `origin/main`
+push, dirty-tree refusal, and topic branch switch.
 
-Keep `zig` as the fork's working baseline. Do upstreamable work on topic
-branches from `zig`; do not commit feature work directly to `zig`, and
-do not force-push `zig`. Force-push a personal topic branch only when no
+Keep `main` as the fork's working baseline. Do upstreamable work on topic
+branches from `main`; do not commit feature work directly to `main`, and
+do not force-push `main`. Force-push a personal topic branch only when no
 one else is using it.
 
 Use conventional commits, as requested by the README. Useful scopes:
