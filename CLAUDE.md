@@ -103,6 +103,16 @@ git push origin zig
 git switch -c <topic-branch>
 ```
 
+Keep `zig` as the fork's working baseline branch. Create upstreamable
+feature or fix work on topic branches from `zig`, and avoid committing
+feature work directly to `zig`.
+
+Fork-only workflow notes may live on `zig`, but remember that topic
+branches created from `zig` inherit those commits. Before opening an
+upstream PR, confirm the branch contains only the intended upstreamable
+changes, or branch from `upstream/zig` and cherry-pick the feature
+commits.
+
 Prefer topic branches named for the primitive or bug, for example
 `fix-compile-ready`, `runtime-stderr-write`, `compiler-argv-access`, or
 `stdlib-dropz-read-file`. Do not force-push `zig`. Force-push a personal
