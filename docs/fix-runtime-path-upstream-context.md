@@ -141,6 +141,51 @@ Leaves the branch at 4 commits:
 3. `e23b457` test: capture native clang failure exit
 4. `66aebba` fix: propagate native compile clang failures
 
+## Repo-activity reality check (revises earlier assumptions)
+
+Surveyed the upstream before finalizing. Several signals change the framing:
+
+**The repo is effectively abandoned for PR review.**
+- Last commit on `zig`: **2025-09-09** (8+ months ago). Maintainer shipped `v0.0.1`, wrote the README, stopped.
+- **5 open PRs, 0 merged.** Oldest from 2025-08-29. Even `t3dotgg`'s PR #7 (emoji identifier support, 16 comments) has sat since 2025-09-24 with no maintainer action. `Badbird5907`'s 10-line Windows ARM64 CI PR has sat 8 months with zero comments.
+- Maintainer's total comment engagement: two short replies in 2025-09 across all issues/PRs.
+- 633 stars, 38 forks, 12 open issues. No CI besides a release workflow. This is a meme/stunt project that went viral, not an actively maintained one.
+
+**What this changes about the PR strategy:**
+
+1. **Getting merged is unlikely in a useful timeframe.** The PR will almost certainly sit in the queue indefinitely. Don't optimize for "merge this week" — optimize for *"this is a clean, useful artifact on the public record."* Future maintainers or forkers should be able to read it and understand the whole picture without a review conversation.
+
+2. **Flipping the option-1-vs-1+2 decision — now recommend 1+2.** The earlier reasoning against option 2 (env-var override) was "design choices are where first PRs get stuck with reviewers." With no active reviewer, there's no one to get stuck with. Meanwhile:
+   - The env-var actually unblocks release-binary users (the population that matters for a public artifact).
+   - It's ~5 lines, backward-compatible, no new dependencies.
+   - It makes the PR strictly more useful as a standalone artifact.
+   - Leaving it out just to be "minimal for a reviewer" when there's no reviewer is optimizing for nothing.
+
+   Recommendation: **add `CURSED_RUNTIME` env-var check in `resolveRuntimePath` — env wins if set, otherwise the exe-relative lookup.** Document the name in the PR description.
+
+3. **Write the PR description as freestanding documentation, not a reviewer-facing ask.**
+   - State what was done and why. No "let me know which you prefer" phrasing.
+   - Don't ask the maintainer to pick between follow-ups — pick a reasonable default (env-var) and ship it.
+   - Mention the embedded-runtime approach as a possible future direction, but don't frame it as a question requiring an answer.
+
+4. **Don't invite peanut-gallery engagement.** PR #7's comment thread is a cautionary tale — drive-by "lgtm works on my machine" comments and self-critical AI-agent remarks. Our PR should not encourage this:
+   - Keep the description factual and narrow in scope.
+   - Don't lean on AI co-authorship signals in the PR description (the commits already have `Co-authored-by: Codex <codex@openai.com>` — sufficient).
+   - Don't phrase things as open questions that invite random votes.
+
+5. **Tone — keep the serious register.** Upstream commits mix serious conventional-commits style with emoji-heavy "🔧 MAJOR FIX: Thing Working!" style. Our commits (`fix: propagate native compile clang failures`) are firmly in the serious register. That signals we're fixing actual bugs, not joining the meme. Don't change it.
+
+6. **Expectations.** Treat this PR as probably-won't-merge. The value is: (a) the branch exists as a clean artifact; (b) it's a good portfolio item; (c) if the maintainer ever returns or someone forks the project, the fix is picked up, already reviewed against the code and documented.
+
+7. **One CI concern to note (minor).** Our new test scripts are POSIX shell with `set -eu` — fine on Linux/macOS, broken on Windows. The upstream's only CI workflow is `release.yml`, not a test matrix, so this won't fail CI today. But if the maintainer ever adds a Windows test job, these scripts won't run there. Worth mentioning in the PR description as a known limitation (or guard the Makefile targets with an OS check).
+
+### Revised recommendation summary
+
+- **Ship fixes 1 + 2 + env-var override.** Add `CURSED_RUNTIME` env check ahead of the exe-relative lookup in `resolveRuntimePath`.
+- **Still drop `check-no-personal-paths.sh`** (the policy reasoning from the previous section stands).
+- **Final branch shape: 4 commits + 1 new commit for the env-var** → 5 commits, three Zig changes, two shell tests, one Makefile hunk.
+- **Write the PR description to stand alone.** Factual, narrow, no asks.
+
 ## Links
 
 - Branch: https://github.com/jonathandeamer/cursed/tree/fix-runtime-path-upstream
