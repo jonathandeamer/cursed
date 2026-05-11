@@ -88,7 +88,7 @@ Reasoning:
 
 - Problem: hardcoded `/home/ghuntley/...` runtime path; silent success when clang fails.
 - Fixes: exe-relative runtime lookup; error propagation on clang failure.
-- Tests: three new shell checks wired via Makefile.
+- Tests: two new shell checks wired via Makefile (see "Are all three test scripts necessary?" below for why we're dropping the third).
 - **Heads-up section**: flag that `--compile` from release binaries was already broken by the hardcoded path and is still broken after this PR (now with a clean error instead of wrong silent success). Offer two follow-ups — env-var override or embedded runtime — and *ask* the maintainer's preference rather than presenting a decision.
 
 ## Should the two fixes be one PR or split?
@@ -106,6 +106,40 @@ Considered splitting Fix 1 (runtime path) and Fix 2 (clang failure propagation) 
 - Fix 2's error-variant naming (`ClangUnavailable` vs `ClangFailed`) turning into a bikeshed that blocks Fix 1. Low-risk; if it happens, splitting mid-review is trivial.
 
 Default to one PR. If the maintainer asks to split, do it then.
+
+## Are all three test scripts necessary?
+
+Checked the upstream README and `test_suite/` for test-style conventions. Findings:
+
+- README contribution guideline is one line: *"Add tests for new features."* No format prescribed.
+- No CONTRIBUTING.md, no AGENTS.md, no CI config enforcing a style.
+- `test_suite/` is a dumping ground — dozens of `.log`/`.txt` output captures checked in next to `.💀` source programs and `.ll` LLVM IR files. No shell-script regression checks exist today. Our tests are actually more rigorous than what's there.
+
+Given the loose convention, the question becomes: do our three scripts each justify their presence?
+
+| Script | Tests what? | Keep? |
+|---|---|---|
+| `check-native-runtime-path.sh` | Fix 1: runtime found when cwd ≠ repo root, no `/home/ghuntley` in diagnostics | **Yes** — directly exercises the bug |
+| `check-native-clang-failure.sh` | Fix 2: `--compile` exits nonzero when clang fails | **Yes** — without it, Fix 2 is a trust-me change |
+| `check-no-personal-paths.sh` | Future regressions: greps active compiler files for `/home/…` and `/Users/…` | **Drop** — see below |
+
+**Why drop `check-no-personal-paths.sh`:**
+- It doesn't test *this* fix. It's a style/hygiene lint preventing a class of future regression.
+- The other two scripts prove the fixes; this one introduces a *new project policy* (no personal paths in three specific files). Policy decisions are the maintainer's call, not an unknown contributor's.
+- Removing it drops one commit (`eb4b3aa`), one script (17 lines), and one Makefile target (`path-hygiene`). Tightens the commit shape to four commits of pure fix-and-test work.
+- If the maintainer likes the idea, offer it in the PR description as a follow-up: *"Happy to add a lint that rejects `/home/...` and `/Users/...` in `build.zig` and the two compiler entry points if you'd like — didn't want to presume."*
+
+### Recommended branch adjustment before opening PR
+
+Drop commit `eb4b3aa` ("test: reject personal home paths in active compiler code"). This removes:
+- `scripts/check-no-personal-paths.sh`
+- the `path-hygiene` target and its `.PHONY` entry in `Makefile`
+
+Leaves the branch at 4 commits:
+1. `4613577` test: capture cwd-independent runtime path
+2. `eba3cf3` fix: resolve native runtime path from compiler
+3. `e23b457` test: capture native clang failure exit
+4. `66aebba` fix: propagate native compile clang failures
 
 ## Links
 
