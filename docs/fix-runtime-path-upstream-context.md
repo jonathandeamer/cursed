@@ -91,6 +91,22 @@ Reasoning:
 - Tests: three new shell checks wired via Makefile.
 - **Heads-up section**: flag that `--compile` from release binaries was already broken by the hardcoded path and is still broken after this PR (now with a clean error instead of wrong silent success). Offer two follow-ups — env-var override or embedded runtime — and *ask* the maintainer's preference rather than presenting a decision.
 
+## Should the two fixes be one PR or split?
+
+Considered splitting Fix 1 (runtime path) and Fix 2 (clang failure propagation) into two PRs. Decision: **keep them as one PR.**
+
+**Why not split:**
+- Fix 2 earns its keep *because of* Fix 1. Before Fix 1, `--compile` was broken for everyone-not-ghuntley, so silent-success-on-clang-failure was just one symptom among many. After Fix 1, `--compile` actually runs clang for real users, which is exactly when you want clang failures to propagate. They tell a coherent story together: "make `--compile` actually work, and fail loudly when it can't."
+- The test for Fix 2 (`check-native-clang-failure.sh`) only works because Fix 1 makes the compiler resolvable in the first place. Splitting means either ordering the PRs (Fix 1 first, then Fix 2) or writing temporary test scaffold that gets thrown away.
+- Total diff is small: one Zig file (+24/-6), three shell scripts, a Makefile hunk. Well under the threshold where "too big" becomes a concern.
+- Two PRs doubles the review surface — two notifications, two passes, two merges — for a change that a maintainer can review in one sitting.
+
+**What would tip toward splitting:**
+- Signal that the maintainer prefers single-purpose PRs as a house style. No such signal on `ghuntley/cursed`.
+- Fix 2's error-variant naming (`ClangUnavailable` vs `ClangFailed`) turning into a bikeshed that blocks Fix 1. Low-risk; if it happens, splitting mid-review is trivial.
+
+Default to one PR. If the maintainer asks to split, do it then.
+
 ## Links
 
 - Branch: https://github.com/jonathandeamer/cursed/tree/fix-runtime-path-upstream
