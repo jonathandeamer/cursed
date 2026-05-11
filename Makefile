@@ -77,13 +77,16 @@ clean: ## Clean all build artifacts
 
 # Testing Framework
 # =============================================================================
-.PHONY: test test-all test-zig test-stdlib test-compiler test-examples probes
+.PHONY: test test-all test-zig test-stdlib test-compiler test-examples probes path-hygiene
 .PHONY: run-tests check verify
 
 test: test-zig ## Run all tests
 
 probes: ## Run cursed-compiler native compile probes
 	pytest probes/
+
+path-hygiene: ## Reject personal home paths in active compiler/build code
+	$(AT)scripts/check-no-personal-paths.sh
 
 test-zig: build ## Run Zig compiler tests
 	$(AT)echo -e "$(BLUE)🧪 Running Zig compiler tests...$(RESET)"
