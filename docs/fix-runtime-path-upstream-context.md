@@ -179,12 +179,54 @@ Surveyed the upstream before finalizing. Several signals change the framing:
 
 7. **One CI concern to note (minor).** Our new test scripts are POSIX shell with `set -eu` — fine on Linux/macOS, broken on Windows. The upstream's only CI workflow is `release.yml`, not a test matrix, so this won't fail CI today. But if the maintainer ever adds a Windows test job, these scripts won't run there. Worth mentioning in the PR description as a known limitation (or guard the Makefile targets with an OS check).
 
-### Revised recommendation summary
+(The recommendation summary that previously lived here has been superseded by the "Final recommendation summary" at the bottom of the next section.)
 
-- **Ship fixes 1 + 2 + env-var override.** Add `CURSED_RUNTIME` env check ahead of the exe-relative lookup in `resolveRuntimePath`.
-- **Still drop `check-no-personal-paths.sh`** (the policy reasoning from the previous section stands).
-- **Final branch shape: 4 commits + 1 new commit for the env-var** → 5 commits, three Zig changes, two shell tests, one Makefile hunk.
+## Should we file an issue alongside the PR?
+
+**Yes — file a terse companion issue when the PR opens.** Not before (no gatekeeping), not instead (PR does the main work). Alongside.
+
+**Why file one at all:**
+- Users and forkers searching the issue tracker for error signatures ("clang failure", "cursed_runtime.c not found", after the fix "ClangFailed") need a landing page. An issue provides that; a PR does not show up in issue search by default.
+- Fork-resurrectors (the de facto primary audience per the repo-activity section) benefit from seeing "known bug → linked PR" as a paired artifact rather than just a PR.
+- Costs ~10 minutes. Asymmetric upside.
+
+**Why not before:**
+- Gatekeeping a PR on issue triage that won't come (8 months, two maintainer comments total) wastes time.
+- "Is this a bug?" is self-evident from a hardcoded `/home/ghuntley/` string in shipped code. Asking looks performative.
+- The repo's established norm is PR-first (every open PR went straight in, no preceding issue).
+
+**AI-agent audience — the decisive factor.**
+
+Almost all development on this repo is AI-driven. `t3dotgg`'s PR #7 comment thread includes "(claude is) working on fixing build errors" and "Done with a second-rate coding agent, shameful." Our own branch is co-authored by Codex. Future contributors to this repo will overwhelmingly be *agents doing what we're doing now* — reading the repo, looking for something to fix, working from whatever signal the tracker provides.
+
+Agents use issues differently from humans:
+- They read the full issue tracker as context before proposing changes.
+- Open issues with clear repros become candidate work items — "here's a bug, fix it."
+- Closed issues linked to PRs become training data for "what did a good fix look like here."
+- An issue stating the bug clearly is more useful to an agent than the same info buried in a PR description, because issue search is the conventional entry point.
+
+So the issue isn't just documentation for a future human forker — it's a **signal to the next agent poking at this repo** that (a) this bug is known, (b) a fix exists at PR #N, and (c) if the PR stalls, here's everything needed to pick up the work.
+
+That shifts the recommendation from "nice-to-have, low-cost, might as well" to **"actively valuable given who's doing the work on this codebase."**
+
+**What to put in the issue:**
+
+- Title: `bug: --compile silently succeeds when clang fails; runtime path hardcoded to maintainer's home dir`
+- Body: two short paragraphs, one per bug, each with a minimal repro. Link PR #N as the proposed fix. No questions, no editorializing, no "thoughts?" invitations.
+- File it immediately after opening the PR so cross-linking is natural.
+- Keep tone consistent with the PR — factual, narrow.
+
+**What explicitly NOT to do:**
+- Don't file separate issues for the release-binary gap or for the `check-no-personal-paths.sh` policy idea. Those are direction conversations that need a maintainer; filing them on a dormant repo clutters the tracker without producing answers. Mention the release-binary gap in the PR description and leave it at that.
+- Don't open the issue before the PR. That's the gatekeeping pattern this repo's activity level makes pointless.
+
+### Final recommendation summary (updated)
+
+- **Ship fixes 1 + 2 + env-var override** (option 1+2 from earlier sections).
+- **Drop `check-no-personal-paths.sh`** and the `path-hygiene` target.
+- **Final branch shape: 5 commits** — 3 Zig changes, 2 shell tests, 1 Makefile hunk.
 - **Write the PR description to stand alone.** Factual, narrow, no asks.
+- **File a terse companion issue right after opening the PR** — indexed for future agents and human forkers searching the tracker.
 
 ## Links
 
